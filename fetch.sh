@@ -58,6 +58,13 @@ IFS=$IFSORIGIALE
 			DATA=$(echo $VAL_DATA | jq --arg sk "$sk" '.[] | select(.codseqst==$sk) | .misurazioni[].pm10[-1].data'| tr "\"" "\n" | tr "null \"" "\n")
 			PM10=$(echo $VAL_DATA | jq --arg sk "$sk" '.[] | select(.codseqst==$sk) | .misurazioni[].pm10[-1].mis' | tr "\"" "\n" | tr "null \"" "\n")
 			OZONO=$(echo $VAL_DATA | jq --arg sk "$sk" '.[] | select(.codseqst==$sk) | .misurazioni[].ozono[-1].mis' | tr "\"" "\n" | tr "null \"" "\n")
+			
+			#Se il sensore non ha il valori di pm10 non ha la data quindi ricerco nuovamente la data nelle misurazioni dell'ozono
+			if [ -z "$DATA" ]
+			then
+				DATA=$(echo $VAL_DATA | jq --arg sk "$sk" '.[] | select(.codseqst==$sk) | .misurazioni[].ozono[-1].data'| tr "\"" "\n" | tr "null \"" "\n")
+			fi
+			
 			#CREO LE TABELLE CON IL CODICE DELLA CENTRALLINA
 				/usr/bin/mysql --defaults-file=/home/ubuntu/arpav/my.cnf -Darpav << MYSQL
 CREATE TABLE IF NOT EXISTS \`${sk}\` (id INT(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,datetime DATETIME NULL DEFAULT NULL, pm10 DECIMAL(10,3) NULL DEFAULT NULL,ozono DECIMAL(10,5) NULL DEFAULT NULL );
